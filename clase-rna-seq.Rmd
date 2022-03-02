@@ -1,0 +1,112 @@
+---
+title: "RNA-seq-clase1"
+author: "Sofia Salazar"
+date: "3/1/2022"
+output: html_document
+---
+library(wordcloud)
+library(RColorBrewer)
+words <- c('Librería', 'Secuenciación', 'Transcripción', 'samtools', 'RNA', 
+'Regulación', 'Nucleótido', 'Traducción'
+'RNA, secuenciación, proteínas, regulación, expresión génica
+Secuenciación, expresión diferencial, transcriptoma, fenotipos exones
+Transcriptoma, expresión diferencial, RNA, diferencia celular
+Transcripción, regulación, expresión, muestra
+Expresion, exones, transcriptoma, UTR, hisat2, splicing,
+Transcritoma, splicing, cDNA, 
+
+')
+wordcloud(words, colors = RColorBrewer::brewer.pal(5,name = "BuPu"))
+
+
+## Transcriptómica
+
+Indentidad y abudancia
+
+### RNA-seq
+
+**Microarreglos** 
+Pozos con sondas que se hibridizan dependiendo de lo que se esta buscando diferenciar
+
+**RNA-seq**
+
+utiliza NGS
+QC of raw data -> read alignment -> gene transcript and quantification
+
+**Aplicaciones**
+
+- Alternative splicing - que isoformas se expresan
+
+- Analisis funcionales
+
+- eQTL mapping
+
+- Differential Expression
+
+- Build catalogues
+
+### Bases de datos
+
+**Datos de publicación**
+
+- GEO
+
+- SRA
+
+- ArrayExpress
+
+**Consorcios**
+
+- GTEX
+
+- TCGA
+
+**Integración de datos para análisis**
+
+- recount3
+
+- pulmonDB
+
+### Diseño experimental
+
+Illumina
+1. Extracción de RNA
+2. Fragmentación (secuencia en 600bp)
+3. cDNA synthesis
+4. Adaptador ligation
+5. PCR
+6. Size selection
+7. Sequencing
+
+PacBio / Oxford nanopore - lecturas largas
+**Extracción**
+Deshacerse del RNA ribosomal 90% y quedarse con el mRNA (~1-2%)
+
+- Eucariotes
+
+Enriquecer mRNA usando selección de poly(A) -> Degradar mínimamente al RNA, pedido por RNA integrity Number (RIN)
+
+- Procariotes
+
+Deshacerse del rRNA
+
+### Tipo de libreria
+
+- Single-end SE
+
+organimso bien documentado, bajo costo
+
+- Paired-end PE
+
+Descubrimiento de transcritos de novo, analisis de expresión de isoformas, organismo no anotado
+
+### Sequencing depth
+
+sequencing depth = transcritos + precisión
+
+## Replicas
+
+Replica = no. de muestras por grupo
+
+## Diseño de secuenciación
+
