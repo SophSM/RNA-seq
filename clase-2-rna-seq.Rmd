@@ -1,0 +1,163 @@
+---
+title: "clase2-RNA-seq"
+author: "Sofia Salazar"
+date: "3/2/2022"
+output: html_document
+---
+
+## Pipeline
+
+1. Descargar fastqc
+
+2. QC
+
+3. Trimm
+
+  - snakemake: procesar muchos archivos
+  
+4. QC, reporte con multiqc, los que queremos son los archivos "P"
+
+5. Alineamiento
+
+ - mapeo de las reads de los transcritos
+ 
+ - Algoritmos:
+
+Genome mapping & transcriptome mapping: basados en mapear a un genoma de referencia.
+
+Reference-free assembly: assembly into transcripts, cuando no se tiene un genoma de referencia.
+
+**Genome mapping:**
+
+Solo se tienen una version de las isoformas, alineación es muy puntual, cuando no te interesa conocer isoformas y cuando quieres **encontrar transcritos nuevos - sin GFF (anotaciones)**
+
+**Transcriptome mapping:**
+
+Mayor mappeo múltiple con transcriptoma debido a las isoformas, cuando solo queramos hacer una cuantificación.
+
+Kallisto: precisos al caracterizar transcritos con alta abundancia, menos precisos con transcritos menos o cortos
+
+Es mejor tener datos paired end o con alta coverage.
+
+**Ensamblaje de novo**
+
+- Balance en cobertura
+
+Uso con PE o lecturas largas, no es muy confiable con transcritos de baja expresión, mucha cobertura nos puede dar un potencial ensamblaje erróneo y un mayor tiempo de ejecución
+
+6. Cuantificación de transcritos
+
+- Enfoque simple: numero de reads que mapearon a cada secuencia
+
+Sailfish - cuantificación de k-meros
+*¿Cómo sé que mis cuentas corresponden a genes/transcritos?*
+
+- Referencia con anotaciones
+
+- GENECODE
+
+- Ensembl
+
+**output:** Cuentas crudas / raw counts, no comparar aun niveles de expresión
+
+#### Ensembl
+
+Descarga de anotaciones y transcriptoma de referencia.
+
+Se pueden descargar los archivos para indices para hacer el mappeo a genoma o transcriptoma de referencia.
+
+Flags
+
+#### GENECODE
+
+Anotan genes, trancsritos etc en mouse y en humanos
+
+ALL - anotaciones de todo el genoma
+
+CHR - anotaciones paraticulares
+
+** Link blando **
+ln -s /mnt/Citosina/amedina/mpadilla/resources/kallisto/index_kallisto45_gencode-m28 /mnt/Timina/bioinfoII/ssalazar/rna-seq/index
+
+ln -s /mnt/Citosina/amedina/mpadilla/resources/kallisto/
+
+ln -s /mnt/Timina/bioinfoII/ssalazar/lugar-donde-hay-trimmed mi/directorio
+
+```{bash}
+wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M28/gencode.vM28.transcripts.fa.gz
+
+# Hacer los indices
+kallisto index -i mi-index_kallisto45_gencode-m28 /mnt/Timina/bioinfoII/ssalazar/rna-seq/data/gencode.vM28.transcripts.fa.gz
+
+mkdir out/kallisto
+
+module load kallisto/0.45.0
+###
+# Archvos trimmed están en :
+/mnt/Timina/bioinfoII/rnaseq/trimmed
+
+cd /mnt/Timina/bioinfoII/ssalazar/rna-seq/out/trimmed
+cp /mnt/Timina/bioinfoII/rnaseq/trimmed/* ./
+
+# desde rna-seq
+kallisto quant -i /mnt/Timina/bioinfoII/ssalazar/rna-seq/index/mi-index_kallisto45_gencode-m28 -o ./out/kallisto ./../../trimmed/*
+
+# Para correr kallisto quant POR muestra (SAMN, recordemos que en este caso cada run SRR*.fastq corresponde a una muestra), hagamos lo siguiente:
+
+
+cd out/kallisto
+
+# 1. Hacer dirs de salida para kallisto por muestra:
+
+ls ../trimmed/ | perl -pe 's/(SRR\d+)_trmd.*/mkdir $1/' | uniq
+
+mkdir SRR12038081
+mkdir SRR12038082
+mkdir SRR12038083
+mkdir SRR12038084
+mkdir SRR12038085
+mkdir SRR12038086
+
+```
+
+```{bash}
+#!/bin/bash
+# Use current working directory
+#$ -cwd
+#
+# Join stdout and stderr
+#$ -j y
+#
+# Run job through bash shell
+#$ -S /bin/bash
+#
+#You can edit the scriptsince this line
+#   
+# Your job name
+#$ -N [quant] # cambiar
+#
+# Send an email after the job has finished
+#$ -m e
+#$ -M [yourmail]
+#
+#
+# If modules are needed, source modules environment (Do not delete the next line):
+. /etc/profile.d/modules.sh
+#
+# Add any modules you might require:
+module load kallisto/0.45.0
+#
+# Write your commands in the next line
+kallisto quant -i /mnt/Timina/bioinfoII/ssalazar/rna-seq/index/mi-index_kallisto45_gencode-m28 -o ./SRR12038081 ../trimmed/SRR12038081* 
+kallisto quant -i /mnt/Timina/bioinfoII/ssalazar/rna-seq/index/mi-index_kallisto45_gencode-m28 -o ./SRR12038082 ../trimmed/SRR12038082* 
+kallisto quant -i /mnt/Timina/bioinfoII/ssalazar/rna-seq/index/mi-index_kallisto45_gencode-m28 -o ./SRR12038083 ../trimmed/SRR12038083* 
+kallisto quant -i /mnt/Timina/bioinfoII/ssalazar/rna-seq/index/mi-index_kallisto45_gencode-m28 -o ./SRR12038084 ../trimmed/SRR12038084* 
+kallisto quant -i /mnt/Timina/bioinfoII/ssalazar/rna-seq/index/mi-index_kallisto45_gencode-m28 -o ./SRR12038085 ../trimmed/SRR12038085* 
+kallisto quant -i /mnt/Timina/bioinfoII/ssalazar/rna-seq/index/mi-index_kallisto45_gencode-m28 -o ./SRR12038086 ../trimmed/SRR12038086*
+```
+
+Run job
+```{bash}
+qsub quant.sge
+```
+

@@ -1,0 +1,86 @@
+---
+title: "clase-3-rna-seq"
+author: "Sofia Salazar"
+date: "3/3/2022"
+output: html_document
+---
+
+After quantification:
+
+Import data (txi) -> count matrix -> normalize -> batch correction (ComBat_seq)
+
+Del paso anterior de quantification:
+
+.tsv -> cada transcrito y cada cuenta asociada a ese transcrito
+
+```{bash}
+cd /mnt/Timina/bioinfoII/ssalazar/rna-seq/out/kallisto/SRR12038081
+less out abundance.tsv
+
+```
+
+- Importación e Integración de datos
+
+Para hacer matriz de cuentas: tximeta y tximport (En bioconductor - R)
+tximeta - tambien crea un dataset de metadatos de las muestras en R
+
+
+```{bash}
+screen -S txi
+qlogin
+cd /mnt/Timina/bioinfoII/ssalazar/rna-seq/out/kallisto/
+cd out/kallisto/
+module load r/4.0.2
+R
+
+library(tximport)
+library(tidyverse)
+# Load data
+files <- file.path("/mnt/Timina/bioinfoII/rnaseq/out/kallisto",list.dirs(dir(".")),"abundance.h5") # abundance files paths
+names(files) <- str_extract(files,"SRR\\d+") # so that tximport identifies them
+files
+
+```
+
+tx2 = transcripts to gene 
+Convertir de gtf de genecode a tablas donde solo agarro los nombres de los transcritos y sus genes correspondientes.
+
+```{bash}
+# Load table with trx id and gene id corrspondence
+tx2gene <- read.csv("/mnt/Timina/bioinfoII/rnaseq/resources/gencode/gencode.vM28.basic.trx_id-gene_id-no_ver.tsv",stringsAsFactors = F)
+# Load table with trx id and gene name corrspondence
+tx2genename <- read.csv("/mnt/Timina/bioinfoII/rnaseq/resources/gencode/gencode.vM28.basic.trx_id-gene_name-no_ver.tsv",stringsAsFactors = F)
+# Run tximport
+# tx2gene links transcript IDs to gene IDs for summarization
+txi.kallisto <- tximport(files, type = "kallisto", tx2gene = tx2gene, ignoreAfterBar=TRUE, ignoreTxVersion=TRUE)
+
+txi.kallisto.name <- tximport(files, type = "kallisto", tx2gene = tx2genename, ignoreAfterBar=TRUE, ignoreTxVersion=TRUE)
+
+
+names(txi.kallisto)
+
+head(txi.kallisto$counts)
+```
+
+- Normalización
+
+Ajustar cuentas tomando en cuenta los sesgos técnicos "no interesantes" de variabilidad.
+
+**Criterios o sesgos a considerar**
+
+Pueden ser relevantes para la comparacion de la expresión entre muestras distintas (eg muestra control vs muestra caso) y/o dentro de una misma muestra muestras (entre genes).
+
+- Sequencing depth distinta entre muestras
+
+**Método:** dividir por el size factor
+
+- Gene length 
+
+Un gen mas grande va a tener mas reads que alinien a él.
+**Método:** Dividir por el longitud del gene
+ 
+- Composición de RNA
+
+sucede cuando se divide entre el numero total de cuentas en cada muestra y en una muestra hay un gen con gran cantidad de reads, sucede entre muestras distintas, también por contaminación o diferencias en el número de genes expresados (PCR)
+
+**Métodos:** CPM, TPM, RPKM, FPKM, DESeq2's median of ratios
