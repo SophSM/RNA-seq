@@ -38,17 +38,26 @@ library(tidyverse)
 # Load data
 files <- file.path("/mnt/Timina/bioinfoII/rnaseq/out/kallisto",list.dirs(dir(".")),"abundance.h5") # abundance files paths
 names(files) <- str_extract(files,"SRR\\d+") # so that tximport identifies them
+
+## con mi path
+
+#myfiles <- file.path("/mnt/Timina/bioinfoII/ssalazar/rna-seq/out/kallisto",list.dirs(dir(".")),"abundance.h5") 
+
+# names(myfiles) <- str_extract(myfiles,"SRR\\d+") # so that tximport identifies them
 files
 
 ```
 
 tx2 = transcripts to gene 
-Convertir de gtf de genecode a tablas donde solo agarro los nombres de los transcritos y sus genes correspondientes.
+Convertir de gtff3 de genecode a tablas donde solo agarro los nombres de los transcritos y sus genes correspondientes.
+
+gencode.vM28.basic.trx_id-gene_id-no_ver.tsv -> en lenguaje de ensmbl, gene id y su correspondiente transcrito id
+gencode.vM28.basic.trx_id-gene_name-no_ver.tsv -> gene id y su nombre correspondiente
 
 ```{bash}
-# Load table with trx id and gene id corrspondence
+# Load table with trx id and gene id correspondence
 tx2gene <- read.csv("/mnt/Timina/bioinfoII/rnaseq/resources/gencode/gencode.vM28.basic.trx_id-gene_id-no_ver.tsv",stringsAsFactors = F)
-# Load table with trx id and gene name corrspondence
+# Load table with trx id and gene name correspondence
 tx2genename <- read.csv("/mnt/Timina/bioinfoII/rnaseq/resources/gencode/gencode.vM28.basic.trx_id-gene_name-no_ver.tsv",stringsAsFactors = F)
 # Run tximport
 # tx2gene links transcript IDs to gene IDs for summarization
@@ -81,6 +90,19 @@ Un gen mas grande va a tener mas reads que alinien a él.
  
 - Composición de RNA
 
-sucede cuando se divide entre el numero total de cuentas en cada muestra y en una muestra hay un gen con gran cantidad de reads, sucede entre muestras distintas, también por contaminación o diferencias en el número de genes expresados (PCR)
+sucede cuando se divide entre el número total de cuentas en cada muestra y en una muestra hay un gen con gran cantidad de reads, sucede entre muestras distintas, también por contaminación o diferencias en el número de genes expresados (PCR)
 
 **Métodos:** CPM, TPM, RPKM, FPKM, DESeq2's median of ratios
+
+
+- Correción del batch effect
+
+Se puede hacer antes o después de normalización, depende del programa que se use para hacer la correción del batch effect
+
+GOOD batch effect - batches revueltos en los grupos separados del PCA
+
+BAD batch effect  - grupos de batches son los mismos que los grupos separados del PCA (variaciones guiadas por los batches)
+
+**Métodos** 
+edgeR, ComBat - batch, ComBat_seq (asume una binomial negativa)
+
