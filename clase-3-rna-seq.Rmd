@@ -36,7 +36,7 @@ R
 library(tximport)
 library(tidyverse)
 # Load data
-files <- file.path("/mnt/Timina/bioinfoII/rnaseq/out/kallisto",list.dirs(dir(".")),"abundance.h5") # abundance files paths
+files <- file.path("t",list.dirs(dir(".")),"abundance.h5") # abundance files paths
 names(files) <- str_extract(files,"SRR\\d+") # so that tximport identifies them
 
 ## con mi path
